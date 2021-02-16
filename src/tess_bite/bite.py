@@ -1,4 +1,5 @@
-from tess_locator import locate
+from tess_locator import locate, TessCoordList
+from tess_ephem import ephem
 
 from .core import RemoteTessImage
 from .targetpixelfile import TargetPixelFile
@@ -35,4 +36,18 @@ def bite(target, sector=None, shape=(5, 5)) -> TargetPixelFile:
     tpf.quality_mask = [True] * n_cadences
     tpf.get_header(1)["1CRV5P"] = 0
     tpf.get_header(1)["2CRV5P"] = 0
+    return tpf
+
+
+def bite_asteroid(target: str, time, shape=(10, 10)) -> TargetPixelFile:
+    """Returns a moving Target Pixel File centered on an asteroid."""
+    eph = ephem(target, time=time, verbose=True)
+    crdlist = TessCoordList.from_pandas(eph)
+    cutouts = []
+    for crd in crdlist:
+        img = crd.get_images()[0]
+        remoteimg = RemoteTessImage(img.url)
+        cutout = remoteimg.download_cutout(col=crd.column, row=crd.row, shape=shape)
+        cutouts.append(cutout)
+    tpf = TargetPixelFile.from_cutouts(cutouts)
     return tpf
