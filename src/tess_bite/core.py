@@ -81,7 +81,7 @@ class RemoteTessImage:
             result.append(myrange)
         return result
 
-    def download_cutout(self, col, row, shape=(5, 5)) -> list:
+    def download_cutout_array(self, col, row, shape=(5, 5)) -> np.array:
         """Returns a 2D array of pixel values."""
         byterange = self._find_pixel_range(col=col, row=row, shape=shape)
         bytedata = self._download_range_multiple(byterange)
@@ -91,6 +91,22 @@ class RemoteTessImage:
             values = struct.unpack(">" + "f" * n_pixels, b)
             data.append(values)
         return np.array(data)
+
+    def download_cutout(self, col, row, shape=(5, 5)) -> "ImageCutout":
+        """Returns a 2D array of pixel values."""
+        flux = self.download_cutout_array(col=col, row=row, shape=shape)
+        time = 0
+        cadenceno = 0
+        quality = 0
+        flux_err = flux.copy()
+        flux_err[:] = np.nan
+        return Cutout(
+            time=time,
+            cadenceno=cadenceno,
+            flux=flux,
+            flux_err=flux_err,
+            quality=quality,
+        )
 
 
 def http_get_range(url: str, byterange: list = None) -> bytes:
@@ -114,3 +130,21 @@ def http_get_range(url: str, byterange: list = None) -> bytes:
             except UnicodeDecodeError:
                 pass
     return data
+
+
+class Cutout:
+    def __init__(
+        self,
+        time: float,
+        cadenceno: int,
+        flux: np.ndarray,
+        flux_err: np.ndarray,
+        quality: int,
+        meta: dict = None,
+    ):
+        self.time = time
+        self.cadenceno = cadenceno
+        self.flux = flux
+        self.flux_err = flux_err
+        self.quality = quality
+        self.meta = meta

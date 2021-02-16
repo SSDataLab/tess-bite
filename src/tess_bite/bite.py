@@ -1,12 +1,14 @@
 from tess_locator import locate
 
 from .core import RemoteTessImage
+from .targetpixelfile import TargetPixelFile
 
 
-def bite_ffi(url, col, row, shape=(5, 5)):
+def bite_ffi(url, col, row, shape=(5, 5)) -> TargetPixelFile:
     """Retrieve a section from an FFI."""
     img = RemoteTessImage(url)
-    return img.download_cutout(col=col, row=row, shape=shape)
+    cutout = img.download_cutout(col=col, row=row, shape=shape)
+    return TargetPixelFile.from_cutouts([cutout])
 
 
 def bite_header():
@@ -14,7 +16,7 @@ def bite_header():
     pass
 
 
-def bite(target, sector=None, shape=(5, 5)):
+def bite(target, sector=None, shape=(5, 5)) -> TargetPixelFile:
     """Returns a target pixel file."""
     from lightkurve.targetpixelfile import TargetPixelFileFactory
 

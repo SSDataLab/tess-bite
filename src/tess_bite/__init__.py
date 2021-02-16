@@ -7,9 +7,6 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.StreamHandler())
 
 from .core import RemoteTessImage
-from .bite import bite
+from .bite import bite, bite_ffi
 
-__all__ = [
-    "RemoteTessImage",
-    "bite",
-]
+__all__ = ["RemoteTessImage", "bite", "bite_ffi"]
